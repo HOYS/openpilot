@@ -171,7 +171,7 @@ class CarInterface(object):
 
       ret.stoppingControl = True
       ret.startAccel = 0.8
-      
+
     elif candidate == CAR.ACADIA_DENALI:
       ret.steerKiBP, ret.steerKpBP = [[0.], [0.]]
       ret.steerKpV, ret.steerKiV = [[0.2], [0.00]]
@@ -196,7 +196,7 @@ class CarInterface(object):
       ret.stoppingControl = True
       ret.startAccel = 0.8
 
-  elif candidate == CAR.BUICK_TOURX:
+    elif candidate == CAR.BUICK_TOURX:
       ret.steerKiBP, ret.steerKpBP = [[0.], [0.]]
       ret.steerKpV, ret.steerKiV = [[0.2], [0.00]]
       ret.steerKf = 0.00004   # full torque for 20 deg at 80mph means 0.00007818594
