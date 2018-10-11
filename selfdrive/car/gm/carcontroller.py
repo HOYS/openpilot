@@ -25,6 +25,11 @@ class CarControllerParams():
       self.STEER_STEP = 1              # how often we update the steer cmd
       self.STEER_DELTA_UP = 2          # 0.75s time to peak torque
       self.STEER_DELTA_DOWN = 5        # 0.3s from peak torque to zero
+    elif car_fingerprint == CAR.BUICK_TOURX:
+      self.STEER_MAX = 255
+      self.STEER_STEP = 3              # how often we update the steer cmd
+      self.STEER_DELTA_UP = 5          # ~0.75s time to peak torque (255/50hz/0.75s)
+      self.STEER_DELTA_DOWN = 15        # ~0.3s from peak torque to zero
 
     self.STEER_DRIVER_ALLOWANCE = 50   # allowed driver torque before start limiting
     self.STEER_DRIVER_MULTIPLIER = 4   # weight driver torque heavily

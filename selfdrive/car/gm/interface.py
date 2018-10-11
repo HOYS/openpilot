@@ -107,6 +107,17 @@ class CarInterface(object):
       ret.steerRatioRear = 0. # TODO: there is RAS on this car!
       ret.centerToFront = ret.wheelbase * 0.465
 
+    elif candidate == CAR.BUICK_TOURX:
+      # engage speed is decided by pcm
+      ret.minEnableSpeed = -1
+      # kg of standard extra cargo to count for drive, gas, etc...
+      ret.mass = 3779. * CV.LB_TO_KG + std_cargo # (3849+3708)/2
+      ret.safetyModel = car.CarParams.SafetyModels.gm
+      ret.wheelbase = 2.83 #111.4 inches in meters
+      ret.steerRatio = 16 # guess for tourx
+      ret.steerRatioRear = 0.
+      ret.centerToFront = ret.wheelbase * 0.4 # guess for tourx
+
 
     # hardcoding honda civic 2016 touring params so they can be used to
     # scale unknown params for other cars
@@ -160,6 +171,30 @@ class CarInterface(object):
       ret.startAccel = 0.8
       
     elif candidate == CAR.ACADIA_DENALI:
+      ret.steerKiBP, ret.steerKpBP = [[0.], [0.]]
+      ret.steerKpV, ret.steerKiV = [[0.2], [0.00]]
+      ret.steerKf = 0.00004   # full torque for 20 deg at 80mph means 0.00007818594
+
+      ret.steerMaxBP = [0.] # m/s
+      ret.steerMaxV = [1.]
+      ret.gasMaxBP = [0.]
+      ret.gasMaxV = [.5]
+      ret.brakeMaxBP = [0.]
+      ret.brakeMaxV = [1.]
+      ret.longPidDeadzoneBP = [0.]
+      ret.longPidDeadzoneV = [0.]
+
+      ret.longitudinalKpBP = [0., 5., 35.]
+      ret.longitudinalKpV = [1.2, 0.8, 0.5]
+      ret.longitudinalKiBP = [0., 35.]
+      ret.longitudinalKiV = [0.18, 0.12]
+
+      ret.steerLimitAlert = True
+
+      ret.stoppingControl = True
+      ret.startAccel = 0.8
+
+  elif candidate == CAR.BUICK_TOURX:
       ret.steerKiBP, ret.steerKpBP = [[0.], [0.]]
       ret.steerKpV, ret.steerKiV = [[0.2], [0.00]]
       ret.steerKf = 0.00004   # full torque for 20 deg at 80mph means 0.00007818594
@@ -290,7 +325,7 @@ class CarInterface(object):
     if ret.seatbeltUnlatched:
       events.append(create_event('seatbeltNotLatched', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
 
-    if self.CS.car_fingerprint in (CAR.VOLT, CAR.ACADIA_DENALI):
+    if self.CS.car_fingerprint in (CAR.VOLT, CAR.ACADIA_DENALI, CAR.BUICK_TOURX):
 
       if self.CS.brake_error:
         events.append(create_event('brakeUnavailable', [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE, ET.PERMANENT]))
