@@ -42,7 +42,7 @@ struct CarEvent @0x9b1657f34caf3ad3 {
     speedTooLow @17;
     outOfSpace @18;
     overheat @19;
-    calibrationInProgress @20;
+    calibrationIncomplete @20;
     calibrationInvalid @21;
     controlsMismatch @22;
     pcmEnable @23;
@@ -69,6 +69,9 @@ struct CarEvent @0x9b1657f34caf3ad3 {
     promptDriverUnresponsive @44;
     driverUnresponsive @45;
     belowSteerSpeed @46;
+    calibrationProgress @47;
+    lowBattery @48;
+    invalidGiraffeHonda @49;
   }
 }
 
@@ -258,13 +261,13 @@ struct CarControl {
       # these are the choices from the Honda
       # map as good as you can for your car
       none @0;
-      beepSingle @1;
-      beepTriple @2;
-      beepRepeated @3;
-      chimeSingle @4;
-      chimeDouble @5;
-      chimeRepeated @6;
-      chimeContinuous @7;
+      chimeEngage @1;
+      chimeDisengage @2;
+      chimeError @3;
+      chimeWarning1 @4;
+      chimeWarning2 @5;
+      chimeWarningRepeat @6;
+      chimePrompt @7;
     }
   }
 }

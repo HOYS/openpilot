@@ -4,7 +4,7 @@ from common.realtime import sec_since_boot
 from selfdrive.config import Conversions as CV
 from selfdrive.controls.lib.drive_helpers import create_event, EventTypes as ET
 from selfdrive.controls.lib.vehicle_model import VehicleModel
-from selfdrive.car.gm.values import DBC, CAR
+from selfdrive.car.gm.values import DBC, CAR, STOCK_CONTROL_MSGS, AUDIO_HUD
 from selfdrive.car.gm.carstate import CarState, CruiseButtons, get_powertrain_can_parser
 
 try:
@@ -12,25 +12,12 @@ try:
 except ImportError:
   CarController = None
 
-# Car chimes, beeps, blinker sounds etc
-class CM:
-  TOCK = 0x81
-  TICK = 0x82
-  LOW_BEEP = 0x84
-  HIGH_BEEP = 0x85
-  LOW_CHIME = 0x86
-  HIGH_CHIME = 0x87
-
 class CanBus(object):
   def __init__(self):
     self.powertrain = 0
     self.obstacle = 1
     self.chassis = 2
     self.sw_gmlan = 3
-
-# 384 = "ASCMLKASteeringCmd"
-# 715 = "ASCMGasRegenCmd"
-CONTROL_MSGS = [384, 715]
 
 class CarInterface(object):
   def __init__(self, CP, sendcan=None):
@@ -74,14 +61,14 @@ class CarInterface(object):
     # Presence of a camera on the object bus is ok.
     # Have to go passive if ASCM is online (ACC-enabled cars),
     # or camera is on powertrain bus (LKA cars without ACC).
-    ret.enableCamera = not any(x for x in CONTROL_MSGS if x in fingerprint)
+    ret.enableCamera = not any(x for x in STOCK_CONTROL_MSGS[candidate] if x in fingerprint)
 
     std_cargo = 136
 
     if candidate == CAR.VOLT:
       # supports stop and go, but initial engage must be above 18mph (which include conservatism)
       ret.minEnableSpeed = 18 * CV.MPH_TO_MS
-      # kg of standard extra cargo to count for drive, gas, etc...
+      # kg of standard extra cargo to count for driver, gas, etc...
       ret.mass = 1607 + std_cargo
       ret.safetyModel = car.CarParams.SafetyModels.gm
       ret.wheelbase = 2.69
@@ -89,10 +76,31 @@ class CarInterface(object):
       ret.steerRatioRear = 0.
       ret.centerToFront = ret.wheelbase * 0.4 # wild guess
 
+    elif candidate == CAR.MALIBU:
+      # supports stop and go, but initial engage must be above 18mph (which include conservatism)
+      ret.minEnableSpeed = 18 * CV.MPH_TO_MS
+      ret.mass = 1496 + std_cargo
+      ret.safetyModel = car.CarParams.SafetyModels.gm
+      ret.wheelbase = 2.83
+      ret.steerRatio = 15.8
+      ret.steerRatioRear = 0.
+      ret.centerToFront = ret.wheelbase * 0.4 # wild guess
+
+    elif candidate == CAR.HOLDEN_ASTRA:
+      # kg of standard extra cargo to count for driver, gas, etc...
+      ret.mass = 1363 + std_cargo
+      ret.wheelbase = 2.662
+      # Remaining parameters copied from Volt for now
+      ret.centerToFront = ret.wheelbase * 0.4
+      ret.minEnableSpeed = 18 * CV.MPH_TO_MS
+      ret.safetyModel = car.CarParams.SafetyModels.gm
+      ret.steerRatio = 15.7
+      ret.steerRatioRear = 0.
+
     elif candidate == CAR.CADILLAC_CT6:
       # engage speed is decided by pcm
       ret.minEnableSpeed = -1
-      # kg of standard extra cargo to count for drive, gas, etc...
+      # kg of standard extra cargo to count for driver, gas, etc...
       ret.mass = 4016. * CV.LB_TO_KG + std_cargo
       ret.safetyModel = car.CarParams.SafetyModels.cadillac
       ret.wheelbase = 3.11
@@ -258,8 +266,7 @@ class CarInterface(object):
     if ret.seatbeltUnlatched:
       events.append(create_event('seatbeltNotLatched', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
 
-    if self.CS.car_fingerprint == CAR.VOLT:
-
+    if self.CS.car_fingerprint in (CAR.VOLT, CAR.MALIBU, CAR.HOLDEN_ASTRA):
       if self.CS.brake_error:
         events.append(create_event('brakeUnavailable', [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE, ET.PERMANENT]))
       if not self.CS.gear_shifter_valid:
@@ -298,7 +305,7 @@ class CarInterface(object):
         events.append(create_event('pcmEnable', [ET.ENABLE]))
       if not self.CS.acc_active:
         events.append(create_event('pcmDisable', [ET.USER_DISABLE]))
-  
+
     ret.events = events
 
     # update previous brake/gas pressed
@@ -316,15 +323,7 @@ class CarInterface(object):
     if hud_v_cruise > 70:
       hud_v_cruise = 0
 
-    chime, chime_count = {
-      "none": (0, 0),
-      "beepSingle": (CM.HIGH_CHIME, 1),
-      "beepTriple": (CM.HIGH_CHIME, 3),
-      "beepRepeated": (CM.LOW_CHIME, -1),
-      "chimeSingle": (CM.LOW_CHIME, 1),
-      "chimeDouble": (CM.LOW_CHIME, 2),
-      "chimeRepeated": (CM.LOW_CHIME, -1),
-      "chimeContinuous": (CM.LOW_CHIME, -1)}[str(c.hudControl.audibleAlert)]
+    chime, chime_count = AUDIO_HUD[c.hudControl.audibleAlert.raw]
 
     # For Openpilot, "enabled" includes pre-enable.
     # In GM, PCM faults out if ACC command overlaps user gas.

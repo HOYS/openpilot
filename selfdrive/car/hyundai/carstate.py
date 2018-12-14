@@ -17,7 +17,7 @@ def get_can_parser(CP):
     ("YAW_RATE", "ESP12", 0),
 
     ("CF_Gway_DrvSeatBeltInd", "CGW4", 1),
-    
+
     ("CF_Gway_DrvSeatBeltSw", "CGW1", 0),
     ("CF_Gway_TSigLHSw", "CGW1", 0),
     ("CF_Gway_TurnSigLh", "CGW1", 0),
@@ -43,6 +43,11 @@ def get_can_parser(CP):
     ("CF_Clu_CluInfo", "CLU11", 0),
     ("CF_Clu_AmpInfo", "CLU11", 0),
     ("CF_Clu_AliveCnt1", "CLU11", 0),
+
+    ("CF_Clu_InhibitD", "CLU15", 0),
+    ("CF_Clu_InhibitP", "CLU15", 0),
+    ("CF_Clu_InhibitN", "CLU15", 0),
+    ("CF_Clu_InhibitR", "CLU15", 0),
 
     ("CF_Lvr_Gear","LVR12",0),
 
@@ -204,7 +209,7 @@ class CarState(object):
       self.pedal_gas = cp.vl["EMS12"]['TPS']
     self.car_gas = cp.vl["EMS12"]['TPS']
 
-    # Gear Selecton - This should be compatible with all Kia/Hyundai with Auto's
+    # Gear Selecton - This is not compatible with all Kia/Hyundai's, But is the best way for those it is compatible with
     gear = cp.vl["LVR12"]["CF_Lvr_Gear"]
     if gear == 5:
       self.gear_shifter = "drive"
@@ -216,6 +221,18 @@ class CarState(object):
       self.gear_shifter = "reverse"
     else:
       self.gear_shifter = "unknown"
+
+    # Gear Selection via Cluster - For those Kia/Hyundai which are not fully discovered, we can use the Cluster Indicator for Gear Selection, as this seems to be standard over all cars, but is not the preferred method.
+    if cp.vl["CLU15"]["CF_Clu_InhibitD"] == 1:
+      self.gear_shifter_cluster = "drive"
+    elif cp.vl["CLU15"]["CF_Clu_InhibitN"] == 1:
+      self.gear_shifter_cluster = "neutral"
+    elif cp.vl["CLU15"]["CF_Clu_InhibitP"] == 1:
+      self.gear_shifter_cluster = "park"
+    elif cp.vl["CLU15"]["CF_Clu_InhibitR"] == 1:
+      self.gear_shifter_cluster = "reverse"
+    else:
+      self.gear_shifter_cluster = "unknown"
 
     # save the entire LKAS11 and CLU11
     self.lkas11 = cp_cam.vl["LKAS11"]

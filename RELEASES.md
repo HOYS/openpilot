@@ -1,3 +1,31 @@
+Version 0.5.6 (2018-11-16)
+========================
+ * Refresh settings layout and add feature descriptions
+ * In Honda, keep stock camera on for logging and extra stock features; new openpilot giraffe setting is 0111!
+ * In Toyota, option to keep stock camera on for logging and extra stock features (e.g. AHB); 120Ohm resistor required on giraffe.
+ * Improve camera calibration stability
+ * More tuning to Honda positive accelerations
+ * Reduce brake pump use on Hondas
+ * Chevrolet Malibu support thanks to tylergets!
+ * Holden Astra support thanks to AlexHill!
+
+Version 0.5.5 (2018-10-20)
+========================
+ * Increase allowed Honda positive accelerations
+ * Fix sporadic unexpected braking when passing semi-trucks in Toyota
+ * Fix gear reading bug in Hyundai Elantra thanks to emmertex!
+
+Version 0.5.4 (2018-09-25)
+========================
+ * New Driving Model
+ * New Driver Monitoring Model
+ * Improve longitudinal mpc in mid-low speed braking
+ * Honda Accord hybrid support thanks to energee!
+ * Ship mpc binaries and sensibly reduce build time
+ * Calibration more stable
+ * More Hyundai and Kia cars supported thanks to emmertex!
+ * Various GM Volt improvements thanks to vntarasov!
+
 Version 0.5.3 (2018-09-03)
 ========================
  * Hyundai Santa Fe support!
